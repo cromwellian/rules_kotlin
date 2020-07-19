@@ -3,18 +3,19 @@
 # Bazel Kotlin Rules
 
 Current release: ***`legacy-1.3.0`***<br />
+Release candidate: ***`legacy-1.4.0-rc1`***<br />
 Main branch: `master`
 
 # News!
+* <b>May 1, 2020.</b> Released version [1.4.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3). Includes:
+  - Pre-built binary worker
+  - Support for Kotlin compiler plugins via the kt_compiler_plugin (#308)
+  - Improved determinism for remote builds (#304)
+  - Avoids packaging non-kotlin-generated sources (#263)
+  - Fix for proper classpath handling for java_plugins (annotation processors) (#318)
+  - Supports propagating kotlin version in metadata (which IDEs can consume) (#242)
 * <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
 * <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
-* <b>Jan 15, 2020.</b> Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4).
-* <b>Jan 15, 2020.</b> Bug fixes and tweaks (#255, #257).
-* <b>Dec 6, 2019.</b> Released version [1.3.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc3).
-* <b>Dec 6, 2019.</b> Add support for later java versions as target platforms (#236).
-* <b>Dec 5, 2019.</b> Released version [1.3.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc2).
-* <b>Dec 5, 2019.</b> Fix for problem with jdeps generation (#235).
-* <b>Oct 29, 2019.</b> Released version [1.3.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc1). 
 * <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 
 For older news, please see [Changelog](CHANGELOG.md)
@@ -52,7 +53,7 @@ Javascript is reported to work, but is not as well maintained (at present)
 # Documentation
 
 Generated API documentation is available at
-[https://bazelbuild.github.io/rules_kotlin/](https://bazelbuild.github.io/rules_kotlin/).
+[https://bazelbuild.github.io/rules_kotlin/kotlin](https://bazelbuild.github.io/rules_kotlin/kotlin).
 
 # Quick Guide
 
@@ -70,6 +71,24 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
     type = "zip",
     strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    sha256 = rules_kotlin_sha,
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
+```
+
+> Note - as of 1.4.0, release binaries will be available in which case you should do the following:
+
+```python
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+rules_kotlin_version = "legacy-1.4.0-rc3"
+rules_kotlin_sha = "<release sha>"
+http_archive(
+    name = "io_bazel_rules_kotlin",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/releases/download/%s/rules_kotlin_release.tgz" % rules_kotlin_version],
     sha256 = rules_kotlin_sha,
 )
 
@@ -143,7 +162,7 @@ _(e.g. Maven artifacts)_
 Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
 # Development Setup Guide
-To use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
+As of 1.4.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
 
 In the project's `WORKSPACE`, change the setup:
 ```python
@@ -161,9 +180,42 @@ kotlin_repositories() # if you want the default. Otherwise see custom kotlinc di
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
+# Kotlin compiler plugins
+
+The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
+
+For example, you can add allopen to your project like this:
+```python
+load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+
+kt_compiler_plugin(
+    name = "open_for_testing_plugin",
+    id = "org.jetbrains.kotlin.allopen",
+    options = {
+        "annotation": "plugin.allopen.OpenForTesting",
+    },
+    deps = [
+        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+    ],
+)
+
+kt_jvm_library(
+    name = "user",
+    srcs = ["User.kt"], # The User class is annotated with OpenForTesting
+    plugins = [
+        ":open_for_testing_plugin",
+    ],
+    deps = [
+        ":open_for_testing", # This contains the annotation (plugin.allopen.OpenForTesting)
+    ],
+)
+```
+
+Full examples of using compiler plugins can be found [here](examples/plugin).
+
 ## Examples
 
-Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, etc.
+Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, Kotlin compiler plugins, etc.
 
 # History
 

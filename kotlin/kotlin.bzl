@@ -17,34 +17,27 @@ load(
     _kotlin_repositories = "kotlin_repositories",
 )
 load(
-    "//kotlin/internal:toolchains.bzl",
+    "//kotlin:rules.bzl",
     _define_kt_toolchain = "define_kt_toolchain",
-    _kt_register_toolchains = "kt_register_toolchains",
-)
-load(
-    "//kotlin/internal/jvm:jvm.bzl",
+    _kt_android_library = "kt_android_library",
+    _kt_compiler_plugin = "kt_compiler_plugin",
+    _kt_js_import = "kt_js_import",
+    _kt_js_library = "kt_js_library",
     _kt_jvm_binary = "kt_jvm_binary",
     _kt_jvm_import = "kt_jvm_import",
     _kt_jvm_library = "kt_jvm_library",
     _kt_jvm_test = "kt_jvm_test",
-)
-load(
-    "//kotlin/internal/jvm:android.bzl",
-    _kt_android_library = "kt_android_library",
-)
-load(
-    "//kotlin/internal/js:js.bzl",
-    _kt_js_import = "kt_js_import_macro",
-    _kt_js_library = "kt_js_library_macro",
+    _kt_register_toolchains = "kt_register_toolchains",
 )
 
+kotlin_repositories = _kotlin_repositories
 define_kt_toolchain = _define_kt_toolchain
 kt_js_library = _kt_js_library
 kt_js_import = _kt_js_import
 kt_register_toolchains = _kt_register_toolchains
-kotlin_repositories = _kotlin_repositories
 kt_jvm_binary = _kt_jvm_binary
 kt_jvm_import = _kt_jvm_import
 kt_jvm_library = _kt_jvm_library
 kt_jvm_test = _kt_jvm_test
 kt_android_library = _kt_android_library
+kt_compiler_plugin = _kt_compiler_plugin

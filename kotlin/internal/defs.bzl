@@ -15,6 +15,10 @@
 # The Kotlin Toolchain type.
 TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin/internal:kt_toolchain_type"
 
+# Java toolchains
+JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"
+JAVA_RUNTIME_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:runtime_toolchain_type"
+
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 
@@ -33,5 +37,12 @@ KtJsInfo = provider(
         "js_map": "The map file for the library",
         "jar": "A jar of the library.",
         "srcjar": "The jar containing the sources of the library",
+    },
+)
+
+KtCompilerPluginInfo = provider(
+    fields = {
+        "classpath": "The kotlin compiler plugin classpath",
+        "options": "List of plugin options, represented as structs with an id and a value field, to be passed to the compiler",
     },
 )

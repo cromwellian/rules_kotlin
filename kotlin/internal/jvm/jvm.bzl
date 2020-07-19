@@ -92,7 +92,10 @@ kt_jvm_binary(
 
 load(
     "//kotlin/internal:defs.bzl",
+    _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
+    _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
@@ -102,6 +105,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
+    _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
@@ -122,9 +126,6 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/zip:zipper"),
         allow_files = True,
     ),
-    "_java_runtime": attr.label(
-        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
-    ),
     "_java_stub_template": attr.label(
         cfg = "host",
         default = Label("@kt_java_stub_template//file"),
@@ -134,6 +135,16 @@ _implicit_deps = {
         runtime for dexing""",
         default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
         cfg = "target",
+    ),
+    "_java_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
+    ),
+    "_host_javabase": attr.label(
+        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+        cfg = "host",
+    ),
+    "_java_runtime": attr.label(
+        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
     ),
 }
 
@@ -184,6 +195,8 @@ _common_attr = utils.add_dicts(
         "plugins": attr.label_list(
             default = [],
             aspects = [_kt_jvm_plugin_aspect],
+            providers = [JavaInfo],
+            cfg = "host",
         ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
@@ -229,11 +242,19 @@ _common_outputs = dict(
     srcjar = "%{name}-sources.jar",
 )
 
+_common_toolchains = [
+    _TOOLCHAIN_TYPE,
+    _JAVA_TOOLCHAIN_TYPE,
+    _JAVA_RUNTIME_TOOLCHAIN_TYPE,
+]
+
 kt_jvm_library = rule(
     doc = """This rule compiles and links Kotlin and Java sources into a .jar file.""",
     attrs = _lib_common_attr,
     outputs = _common_outputs,
-    toolchains = [_TOOLCHAIN_TYPE],
+    toolchains = _common_toolchains,
+    fragments = ["java"],      # Required fragments of the target configuration
+    host_fragments = ["java"], # Required fragments of the host configuration
     implementation = _kt_jvm_library_impl,
     provides = [JavaInfo, _KtJvmInfo],
 )
@@ -254,7 +275,9 @@ kt_jvm_binary = rule(
     }.items()),
     executable = True,
     outputs = _common_outputs,
-    toolchains = [_TOOLCHAIN_TYPE],
+    toolchains = _common_toolchains,
+    fragments = ["java"],      # Required fragments of the target configuration
+    host_fragments = ["java"], # Required fragments of the host configuration
     implementation = _kt_jvm_binary_impl,
 )
 
@@ -285,7 +308,7 @@ kt_jvm_test = rule(
     executable = True,
     outputs = _common_outputs,
     test = True,
-    toolchains = [_TOOLCHAIN_TYPE],
+    toolchains = _common_toolchains,
     implementation = _kt_jvm_junit_test_impl,
 )
 
@@ -365,4 +388,53 @@ kt_jvm_import = rule(
     },
     implementation = _kt_jvm_import_impl,
     provides = [JavaInfo, _KtJvmInfo],
+)
+
+kt_compiler_plugin = rule(
+    doc = """Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
+    of the `kt_jvm_*` rules.
+
+    An example can be found under `//examples/plugin`:
+
+    ```bzl
+    kt_compiler_plugin(
+        name = "open_for_testing_plugin",
+        id = "org.jetbrains.kotlin.allopen",
+        options = {
+            "annotation": "plugin.OpenForTesting",
+        },
+        deps = [
+            "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        ],
+    )
+
+    kt_jvm_library(
+        name = "open_for_testing",
+        srcs = ["OpenForTesting.kt"],
+    )
+
+    kt_jvm_library(
+        name = "user",
+        srcs = ["User.kt"],
+        plugins = [":open_for_testing_plugin"],
+        deps = [
+            ":open_for_testing",
+        ],
+    )
+    ```
+    """,
+    attrs = {
+        "deps": attr.label_list(
+            doc = "The list of libraries to be added to the compiler's plugin classpath",
+        ),
+        "id": attr.string(
+            doc = """The ID of the plugin""",
+        ),
+        "options": attr.string_dict(
+            doc = """Dictionary of options to be passed to the plugin""",
+            default = {},
+        ),
+    },
+    implementation = _kt_compiler_plugin_impl,
+    provides = [JavaInfo, _KtCompilerPluginInfo],
 )

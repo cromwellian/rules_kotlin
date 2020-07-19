@@ -20,10 +20,11 @@ KtJvmPluginInfo = provider(
     doc = "This provider contains the plugin info for the JVM aspect",
     fields = {
         "annotation_processors": "depset of structs containing annotation processor definitions",
+        "transitive_runtime_jars": "depset of transitive_runtime_jars for this plugin and deps",
     },
 )
 
-_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset())]
+_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset(), transitive_runtime_jars = depset())]
 
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
@@ -33,11 +34,18 @@ def _kt_plugin_to_processor(processor):
 def _kt_plugin_to_processorpath(processor):
     return [j.path for j in processor.classpath.to_list()]
 
-def _targets_to_kt_plugins(targets):
+def _targets_to_annotation_processors(targets):
     return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if t[KtJvmPluginInfo]])
 
+def _targets_to_transitive_runtime_jars(targets):
+    return depset(transitive = [t[KtJvmPluginInfo].transitive_runtime_jars for t in targets if t[KtJvmPluginInfo]])
+
+def _targets_to_plugins(targets):
+    return depset(transitive = [t[KtJvmPluginInfo].plugins for t in targets if t[KtJvmPluginInfo]])
+
 mappers = struct(
-    targets_to_kt_plugins = _targets_to_kt_plugins,
+    targets_to_annotation_processors = _targets_to_annotation_processors,
+    targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
 )
@@ -47,7 +55,8 @@ def merge_plugin_infos(attrs):
     Returns:
         A KtJvmPluginInfo provider, Each of the entries is serializable."""
     return KtJvmPluginInfo(
-        annotation_processors = _targets_to_kt_plugins(attrs),
+        annotation_processors = _targets_to_annotation_processors(attrs),
+        transitive_runtime_jars = _targets_to_transitive_runtime_jars(attrs),
     )
 
 def _kt_jvm_plugin_aspect_impl(target, ctx):
@@ -63,6 +72,7 @@ def _kt_jvm_plugin_aspect_impl(target, ctx):
                     generates_api = processor.generates_api,
                 ),
             ]),
+            transitive_runtime_jars = depset(transitive = [merged_deps.transitive_runtime_jars]),
         )]
     elif ctx.rule.kind == "java_library":
         return [merge_plugin_infos(ctx.rule.attr.exported_plugins)]

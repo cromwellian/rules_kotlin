@@ -14,11 +14,10 @@
 package(default_visibility = ["//src:__subpackages__"])
 
 load("@rules_java//java:defs.bzl", "java_library")
-load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
-     "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
+    "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
     "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
     "//src/main/protobuf:kotlin_model_java_proto",
     "//src/main/protobuf:deps_java_proto",
@@ -35,6 +34,7 @@ java_library(
         "Deps.java",
         "DirectoryType.java",
         "KotlinAbstractTestBuilder.java",
+        "KotlinBuilderTestComponent.java",
         "KotlinJsTestBuilder.java",
         "KotlinJvmTestBuilder.java",
     ],
@@ -51,14 +51,17 @@ java_library(
     ],
     deps = _COMMON_DEPS + [
         "//third_party:autovalue",
+        "//third_party:dagger",
+        "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
     ],
 )
 
 test_suite(
     name = "builder_tests",
     tests = [
-        "//src/test/kotlin/io/bazel/kotlin/builder/utils",
         "//src/test/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/test/kotlin/io/bazel/kotlin/builder/utils",
     ],
     visibility = ["//visibility:public"],
 )
