@@ -28,6 +28,11 @@ kt_jvm_import(
     neverlink = 1,
 )
 
+kt_jvm_import(
+    name = "jvm-abi-gen",
+    jar = "lib/jvm-abi-gen.jar",
+)
+
 # Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
     kt_jvm_import(
@@ -41,6 +46,26 @@ kt_jvm_import(
         "compiler",
     ]
 ]
+
+kt_jvm_import(
+    name = "kotlinx-serialization-compiler-plugin",
+    jar = "lib/kotlinx-serialization-compiler-plugin.jar",
+)
+
+kt_jvm_import(
+    name = "allopen-compiler-plugin",
+    jar = "lib/allopen-compiler-plugin.jar",
+)
+
+kt_jvm_import(
+    name = "noarg-compiler-plugin",
+    jar = "lib/noarg-compiler-plugin.jar",
+)
+
+kt_jvm_import(
+    name = "sam-with-receiver-compiler-plugin",
+    jar = "lib/sam-with-receiver-compiler-plugin.jar",
+)
 
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
