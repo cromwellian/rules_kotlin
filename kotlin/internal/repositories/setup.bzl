@@ -51,6 +51,7 @@ def kt_configure():
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
+            "https://jcenter.bintray.com/",
             "https://repo1.maven.org/maven2",
         ],
     )
@@ -61,13 +62,13 @@ def kt_configure():
     http_java_proto_file(
         name = "deps",
         sha256 = "b861dbce04177df9e4b7204876b2f27e18f40eb6d20b3dffefecdd2baf3cfe92",
-        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/2.0.0/src/main/protobuf/deps.proto"],
+        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/3.4.1/src/main/protobuf/deps.proto"],
     )
 
     http_java_proto_file(
         name = "worker_protocol",
         sha256 = "1157c93666f98cfcfcc9f7b073b8dac5bbd50e18f5ab981e93c71e03ed08f304",
-        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/2.0.0/src/main/protobuf/worker_protocol.proto"],
+        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/3.4.1/src/main/protobuf/worker_protocol.proto"],
     )
 
     stardoc_repositories()
