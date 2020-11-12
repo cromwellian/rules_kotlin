@@ -23,10 +23,8 @@ def kt_configure():
         name = "kotlin_rules_maven",
         fetch_sources = True,
         artifacts = [
-            "org.jetbrains.kotlinx:atomicfu-js:0.13.1",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.2",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1",
-            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.4.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0",
             "com.google.code.findbugs:jsr305:3.0.2",
             "junit:junit:4.13-beta-3",
             "com.google.protobuf:protobuf-java:3.6.0",
@@ -47,7 +45,7 @@ def kt_configure():
             "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1",
             "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.1",
             "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.1",
-            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
